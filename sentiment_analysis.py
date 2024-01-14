@@ -100,7 +100,7 @@ if __name__ == "__main__":
                         </head>
                         <body>
 
-                        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment and offensive language scores.</p>
+                        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment score and offensive language score.</p>
 
                         <!-- Use details and summary for toggle functionality -->
                         <details>
