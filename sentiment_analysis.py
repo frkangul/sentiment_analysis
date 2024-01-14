@@ -74,39 +74,73 @@ if __name__ == "__main__":
                         outputs=[gr.Textbox(label="Sentiment Score"), gr.Textbox(label="Offensive Language Score")],
                         title="Social Media Analysis",
                         description="""
-                        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment and offensive language scores.
-                        </p>
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            /* Add some basic styling to the tables */
+                            table {
+                            border-collapse: collapse;
+                            width: 50%;
+                            margin-bottom: 20px;
+                            }
 
+                            th, td {
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                            text-align: left;
+                            }
+
+                            th {
+                            background-color: #f2f2f2;
+                            }
+                        </style>
+                        </head>
+                        <body>
+
+                        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment and offensive language scores.</p>
+
+                        <!-- Use details and summary for toggle functionality -->
+                        <details>
+                        <summary>Score Explanation</summary>
+
+                        <!-- Sentiment Analysis Scores Table -->
                         <table>
-                        <thead>
+                            <thead>
                             <tr>
-                            <th>Sentiment Analysis Scores</th>
-                            <th>Offensive Language Scores</th>
+                                <th>Sentiment Analysis Scores</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                            <td>1 = Very Negative</td>
-                            <td>1 = Not Offensive</td>
-                            </tr>
-                            <tr>
-                            <td>2 = Negative</td>
-                            <td>2 = Slightly Offensive</td>
-                            </tr>
-                            <tr>
-                            <td>3 = Neutral</td>
-                            <td>3 = Moderately Offensive</td>
-                            </tr>
-                            <tr>
-                            <td>4 = Positive</td>
-                            <td>4 = Offensive</td>
-                            </tr>
-                            <tr>
-                            <td>5 = Very Positive</td>
-                            <td>5 = Highly Offensive</td>
-                            </tr>
-                        </tbody>
+                            </thead>
+                            <tbody>
+                            <tr><td>1 = Very Negative</td></tr>
+                            <tr><td>2 = Negative</td></tr>
+                            <tr><td>3 = Neutral</td></tr>
+                            <tr><td>4 = Positive</td></tr>
+                            <tr><td>5 = Very Positive</td></tr>
+                            </tbody>
                         </table>
+
+                        <!-- Offensive Language Scores Table -->
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Offensive Language Scores</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>1 = Not Offensive</td></tr>
+                            <tr><td>2 = Slightly Offensive</td></tr>
+                            <tr><td>3 = Moderately Offensive</td></tr>
+                            <tr><td>4 = Offensive</td></tr>
+                            <tr><td>5 = Highly Offensive</td></tr>
+                            </tbody>
+                        </table>
+                        </details>
+
+                        </body>
+                        </html>
                         """,
                         theme=gr.themes.Soft(),
                         css="footer {visibility: hidden}",
