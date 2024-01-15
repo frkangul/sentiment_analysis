@@ -145,4 +145,4 @@ if __name__ == "__main__":
                         theme=gr.themes.Soft(),
                         css="footer {visibility: hidden}",
                         allow_flagging="never")
-    demo.launch()
+    demo.launch(share=True)
