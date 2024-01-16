@@ -8,6 +8,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-600M", src_lang="tur_Latn")
 model = AutoModelForSeq2SeqLM.from_pretrained("facebook/nllb-200-distilled-600M")
 
+OLLAMA_MODEL = "mistral"
 def nllb_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu"):
     """Translate from turkish to english using facebook:nllb-200-distilled-600M on hface. 
     For default article, 
@@ -49,7 +50,7 @@ def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim hav
     eng = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
     return eng
 
-def get_completion(prompt:str, model:str="mistral", url:str="http://localhost:11434/api/generate")->json:
+def get_completion(prompt:str, model:str=OLLAMA_MODEL, url:str="http://localhost:11434/api/generate")->json:
     """
     Send a single prompt to local ollama API and return the response.
     See https://github.com/jmorganca/ollama.
@@ -126,10 +127,6 @@ def sentiment_analyzer(input:str)->int:
     print(response)
     try:
         res_dict = json.loads(response)
-        print(type(res_dict))
-        print(f"Response: {res_dict}")
-        print(f"response['sentiment_score']: {res_dict['sentiment_score']}")
-        print(f"response['offensive_score']: {res_dict['offensive_score']}")
         print(50*"-")
         return res_dict['sentiment_score'], res_dict['offensive_score']
     except Exception:
