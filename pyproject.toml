@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "sensat-nlp-semantik-analiz"
+name = "sentiment_analysis"
 version = "0.1.0"
 description = ""
 authors = ["Furkan Gul <frkangul@gmail.com>"]
@@ -13,7 +13,12 @@ streamlit = "^1.29.0"
 openai = "^1.7.0"
 gradio = "^4.14.0"
 python-dotenv = "^1.0.0"
+transformers = {extras = ["torch"], version = "^4.36.2"}
+sentencepiece = "^0.1.99"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.28.0"
 
 [build-system]
 requires = ["poetry-core"]
