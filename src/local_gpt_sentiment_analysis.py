@@ -25,10 +25,10 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         response['offensive_score'] (int): offensive lang score: 1, 2, 3, 4, 5
     """
 
-    print(f"Original Input: {input}")
+    # print(f"Original Input: {input}")
     if is_local:
         input_eng = nllb_translate_tr_to_eng(article=input)
-        print(f"Translated Input: {input_eng}")
+        # print(f"Translated Input: {input_eng}")
         comment = input_eng
         MODEL = LOCAL_MODEL
         get_completion = get_completion_local
@@ -39,17 +39,15 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         get_completion = get_completion_openai
 
     prompt = f"""
-    Your task is to perform the following actions based on the social media comment, delimited by <>:
+    Your task is to perform the following actions based on a social media comment, delimited by <>:
     
-    1 - Generate the sentiment analysis for the comment, \
-        assign a score from 1 to 5, where:
+    1 - Assign a sentiment score from 1 to 5 for the comment, where: \
         1 = Very Negative
         2 = Negative
         3 = Neutral
         4 = Positive
         5 = Very Positive
-    2 - Generate the offensive language detection for the comment, \
-        assign a score from 1 to 5, where:
+    2 - Assign an offensive language score from 1 to 5 for the comment, where:
         1 = Not Offensive
         2 = Slightly Offensive
         3 = Moderately Offensive
@@ -64,10 +62,12 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
     """
 
     response = get_completion(prompt)
-    print(response)
+    # print(response)
     try:
-        res_dict = json.loads(response)
-        print(50*"-")
+        # Decode Unicode escape sequences
+        response_decoded = response.encode('utf-8').decode('unicode_escape')
+        res_dict = json.loads(response_decoded)
+        # print(50*"-")
         # WRITE INTO DB
         cur.execute("""
             INSERT INTO logs(ID, input, model, eng_input, sentiment_score, offensive_score) VALUES
@@ -76,7 +76,7 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         con.commit()
         return res_dict['sentiment_score'], res_dict['offensive_score']
     except Exception as e:
-        print(e)
+        # print(e)
         # WRITE INTO DB
         cur.execute("""
             INSERT INTO logs(ID, input, model, eng_input, RESPONSE, ERROR) VALUES
