@@ -5,3 +5,4 @@ flagged/
 prompt.txt
 dev.ipynb
 src/__pycache__
+*.db
