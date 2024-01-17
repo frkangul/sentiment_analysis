@@ -1,8 +1,15 @@
 
 import json
+import sqlite3
 
 import gradio as gr
-from utils import get_completion_local, get_completion_openai, nllb_translate_tr_to_eng
+from utils import (
+    LOCAL_MODEL,
+    OPENAI_MODEL,
+    get_completion_local,
+    get_completion_openai,
+    nllb_translate_tr_to_eng,
+)
 
 
 def sentiment_analyzer(input:str, is_local:bool)->int:
@@ -19,10 +26,12 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
 
     print(f"Original Input: {input}")
     if is_local:
-        input = nllb_translate_tr_to_eng(article=input)
-        print(f"Translated Input: {input}")
+        input_eng = nllb_translate_tr_to_eng(article=input)
+        print(f"Translated Input: {input_eng}")
+        comment = input_eng
         get_completion = get_completion_local
     else:
+        comment = input
         get_completion = get_completion_openai
 
     prompt = f"""
@@ -46,7 +55,7 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
     Format your response as a JSON object with the keys \
     'sentiment_score' and 'offensive_score'. 
 
-    Comment: <{input}>
+    Comment: <{comment}>
     """
 
     response = get_completion(prompt)
@@ -54,11 +63,29 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
     try:
         res_dict = json.loads(response)
         print(50*"-")
+        # WRITE INTO DB
+        if is_local:
+            cur.execute("""
+                INSERT INTO logs(ID, input, model, eng_input, sentiment_score, offensive_score) VALUES
+                    (NULL, ?, ?, ?, ?, ?)
+            """, (input, LOCAL_MODEL, input_eng, res_dict['sentiment_score'], res_dict['offensive_score']))
+        else:
+            cur.execute("""
+                INSERT INTO logs(ID, input, model, sentiment_score, offensive_score) VALUES
+                    (NULL, ?, ?, ?, ?)
+            """, (input, OPENAI_MODEL, res_dict['sentiment_score'], res_dict['offensive_score']))
+
+        con.commit()
+
         return res_dict['sentiment_score'], res_dict['offensive_score']
-    except Exception:
-        return -1
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
+    con = sqlite3.connect("log.db", check_same_thread=False)
+    cur = con.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS logs(ID INTEGER PRIMARY KEY, input TEXT, model TEXT, eng_input TEXT, sentiment_score INT, offensive_score INT, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)")
+    
     demo = gr.Interface(fn=sentiment_analyzer,
                         inputs=[gr.Textbox(label="Social Media Comment", lines=1.8), gr.Checkbox(label="Local LLM")], 
                         outputs=[gr.Textbox(label="Sentiment Score"), gr.Textbox(label="Offensive Language Score")],
