@@ -8,33 +8,44 @@ import gradio as gr
 from utils import (
     LOCAL_MODEL,
     OPENAI_MODEL,
-    get_completion_local,
-    get_completion_openai,
-    gr_description,
+    get_local_completion,
+    get_openai_completion,
+    gr_descr_html,
     nllb_translate_tr_to_eng,
 )
 
-# Define constants
-ERROR_CODE = -1
+# Set up logging
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', 
+                    datefmt='%d-%b-%y %H:%M:%S',
+                    filename='../chatgpt_pipeline.log',
+                    level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+def initialize_db():
+    """Initialize the database and create the logs table if it doesn't exist."""
+    con = sqlite3.connect("../logs.db", check_same_thread=False)
+    cur = con.cursor()
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS logs(
+                    ID INTEGER PRIMARY KEY, 
+                    input TEXT, 
+                    model TEXT,
+                    eng_input TEXT,
+                    sentiment_score INT,
+                    offensive_score INT,
+                    RESPONSE TEXT,
+                    ERROR TEXT,
+                    timestamp DATE DEFAULT (datetime('now','localtime'))
+                )
+            """)
+    con.close()
 
 @contextmanager
 def get_db_connection():
+    """Context manager for handling the database connection."""
     con = sqlite3.connect("../logs.db", check_same_thread=False)
     try:
-        cur = con.cursor()
-        cur.execute("""
-                    CREATE TABLE IF NOT EXISTS logs(
-                        ID INTEGER PRIMARY KEY, 
-                        input TEXT, 
-                        model TEXT,
-                        eng_input TEXT,
-                        sentiment_score INT,
-                        offensive_score INT,
-                        RESPONSE TEXT,
-                        ERROR TEXT,
-                        timestamp DATE DEFAULT (datetime('now','localtime'))
-                    )
-                """)
         yield con
     finally:
         con.close()
@@ -57,12 +68,12 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         logger.info(f"Translated Input: {input_eng}")
         comment = input_eng
         MODEL = LOCAL_MODEL
-        get_completion = get_completion_local
+        get_completion = get_local_completion
     else:
         input_eng = None
         comment = input
         MODEL = OPENAI_MODEL
-        get_completion = get_completion_openai
+        get_completion = get_openai_completion
     logger.info(f"Model: {MODEL}")
     
     prompt = f"""
@@ -90,6 +101,7 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
 
     response = get_completion(prompt)
     logger.info(f"Raw Response: {response}")
+
     with get_db_connection() as con:
         cur = con.cursor()
         try:
@@ -103,25 +115,21 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
                     (NULL, ?, ?, ?, ?, ?)
             """, (input, MODEL, input_eng, res_dict['sentiment_score'], res_dict['offensive_score']))
             con.commit()
+
             return res_dict['sentiment_score'], res_dict['offensive_score']
+
         except Exception as e:
             logger.error(e)
-            return ERROR_CODE, ERROR_CODE
+            raise Exception("Error processing sentiment analysis")
 
 if __name__ == "__main__":
-    # Define logger
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', 
-                        datefmt='%d-%b-%y %H:%M:%S',
-                        filename='../chatgpt_pipeline.log',
-                        level=logging.INFO)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    initialize_db()
     
     demo = gr.Interface(fn=sentiment_analyzer,
                         inputs=[gr.Textbox(label="Social Media Comment", lines=1.8), gr.Checkbox(label="Local LLM")], 
                         outputs=[gr.Textbox(label="Sentiment Score"), gr.Textbox(label="Offensive Language Score")],
                         title="Social Media Analysis",
-                        description=gr_description,
+                        description=gr_descr_html,
                         theme=gr.themes.Soft(),
                         css="footer {visibility: hidden}",
                         allow_flagging="never")
