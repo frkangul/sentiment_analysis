@@ -113,3 +113,65 @@ def get_completion_openai(prompt:str, model:str=OPENAI_MODEL, temperature:int=0)
     )
     return response.choices[0].message.content
 
+gr_description = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            /* Add some basic styling to the tables */
+            table {
+            border-collapse: collapse;
+            width: 50%;
+            margin-bottom: 20px;
+        
+            th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        
+            th {
+            background-color: #f2f2f2;
+            }
+        </style>
+        </head>
+        <bo
+        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment score and offensive language score.<
+        <!-- Use details and summary for toggle functionality -->
+        <details>
+        <summary>Score Explanation</summa
+        <!-- Sentiment Analysis Scores Table -->
+        <table>
+            <thead>
+            <tr>
+                <th>Sentiment Analysis Scores</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>1 = Very Negative</td></tr>
+            <tr><td>2 = Negative</td></tr>
+            <tr><td>3 = Neutral</td></tr>
+            <tr><td>4 = Positive</td></tr>
+            <tr><td>5 = Very Positive</td></tr>
+            </tbody>
+        </tab
+        <!-- Offensive Language Scores Table -->
+        <table>
+            <thead>
+            <tr>
+                <th>Offensive Language Scores</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>1 = Not Offensive</td></tr>
+            <tr><td>2 = Slightly Offensive</td></tr>
+            <tr><td>3 = Moderately Offensive</td></tr>
+            <tr><td>4 = Offensive</td></tr>
+            <tr><td>5 = Highly Offensive</td></tr>
+            </tbody>
+        </table>
+        </detai
+        </body>
+        </html>
+"""

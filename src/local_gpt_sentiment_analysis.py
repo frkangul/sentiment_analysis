@@ -8,6 +8,7 @@ from utils import (
     OPENAI_MODEL,
     get_completion_local,
     get_completion_openai,
+    gr_description,
     nllb_translate_tr_to_eng,
 )
 
@@ -82,84 +83,16 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         print(e)
 
 if __name__ == "__main__":
-    con = sqlite3.connect("log.db", check_same_thread=False)
+    con = sqlite3.connect("../logs.db", check_same_thread=False)
     cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS logs(ID INTEGER PRIMARY KEY, input TEXT, model TEXT, eng_input TEXT, sentiment_score INT, offensive_score INT, Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)")
+    cur.execute("CREATE TABLE IF NOT EXISTS logs(ID INTEGER PRIMARY KEY, input TEXT, model TEXT, eng_input TEXT, sentiment_score INT, offensive_score INT, timestamp DATE DEFAULT (datetime('now','localtime')))")
     
     demo = gr.Interface(fn=sentiment_analyzer,
                         inputs=[gr.Textbox(label="Social Media Comment", lines=1.8), gr.Checkbox(label="Local LLM")], 
                         outputs=[gr.Textbox(label="Sentiment Score"), gr.Textbox(label="Offensive Language Score")],
                         title="Social Media Analysis",
-                        description="""
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <style>
-                            /* Add some basic styling to the tables */
-                            table {
-                            border-collapse: collapse;
-                            width: 50%;
-                            margin-bottom: 20px;
-                            }
-
-                            th, td {
-                            border: 1px solid #ddd;
-                            padding: 8px;
-                            text-align: left;
-                            }
-
-                            th {
-                            background-color: #f2f2f2;
-                            }
-                        </style>
-                        </head>
-                        <body>
-
-                        <p>Enter a comment on a social platform, and our app will generate the corresponding sentiment score and offensive language score.</p>
-
-                        <!-- Use details and summary for toggle functionality -->
-                        <details>
-                        <summary>Score Explanation</summary>
-
-                        <!-- Sentiment Analysis Scores Table -->
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Sentiment Analysis Scores</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr><td>1 = Very Negative</td></tr>
-                            <tr><td>2 = Negative</td></tr>
-                            <tr><td>3 = Neutral</td></tr>
-                            <tr><td>4 = Positive</td></tr>
-                            <tr><td>5 = Very Positive</td></tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Offensive Language Scores Table -->
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Offensive Language Scores</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr><td>1 = Not Offensive</td></tr>
-                            <tr><td>2 = Slightly Offensive</td></tr>
-                            <tr><td>3 = Moderately Offensive</td></tr>
-                            <tr><td>4 = Offensive</td></tr>
-                            <tr><td>5 = Highly Offensive</td></tr>
-                            </tbody>
-                        </table>
-                        </details>
-
-                        </body>
-                        </html>
-                        """,
+                        description=gr_description,
                         theme=gr.themes.Soft(),
                         css="footer {visibility: hidden}",
                         allow_flagging="never")
-    demo.launch() # share=True
+    demo.launch(share=True)
