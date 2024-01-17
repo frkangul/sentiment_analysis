@@ -1,6 +1,8 @@
 
 import json
+import logging
 import sqlite3
+from contextlib import contextmanager
 
 import gradio as gr
 from utils import (
@@ -12,6 +14,30 @@ from utils import (
     nllb_translate_tr_to_eng,
 )
 
+# Define constants
+ERROR_CODE = -1
+
+@contextmanager
+def get_db_connection():
+    con = sqlite3.connect("../logs.db", check_same_thread=False)
+    try:
+        cur = con.cursor()
+        cur.execute("""
+                    CREATE TABLE IF NOT EXISTS logs(
+                        ID INTEGER PRIMARY KEY, 
+                        input TEXT, 
+                        model TEXT,
+                        eng_input TEXT,
+                        sentiment_score INT,
+                        offensive_score INT,
+                        RESPONSE TEXT,
+                        ERROR TEXT,
+                        timestamp DATE DEFAULT (datetime('now','localtime'))
+                    )
+                """)
+        yield con
+    finally:
+        con.close()
 
 def sentiment_analyzer(input:str, is_local:bool)->int:
     """
@@ -25,10 +51,10 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         response['offensive_score'] (int): offensive lang score: 1, 2, 3, 4, 5
     """
 
-    # print(f"Original Input: {input}")
+    logger.info(f"Original Input: {input}")
     if is_local:
         input_eng = nllb_translate_tr_to_eng(article=input)
-        # print(f"Translated Input: {input_eng}")
+        logger.info(f"Translated Input: {input_eng}")
         comment = input_eng
         MODEL = LOCAL_MODEL
         get_completion = get_completion_local
@@ -37,7 +63,8 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
         comment = input
         MODEL = OPENAI_MODEL
         get_completion = get_completion_openai
-
+    logger.info(f"Model: {MODEL}")
+    
     prompt = f"""
     Your task is to perform the following actions based on a social media comment, delimited by <>:
     
@@ -62,33 +89,33 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
     """
 
     response = get_completion(prompt)
-    # print(response)
-    try:
-        # Decode Unicode escape sequences
-        response_decoded = response.encode('utf-8').decode('unicode_escape')
-        res_dict = json.loads(response_decoded)
-        # print(50*"-")
-        # WRITE INTO DB
-        cur.execute("""
-            INSERT INTO logs(ID, input, model, eng_input, sentiment_score, offensive_score) VALUES
-                (NULL, ?, ?, ?, ?, ?)
-        """, (input, MODEL, input_eng, res_dict['sentiment_score'], res_dict['offensive_score']))
-        con.commit()
-        return res_dict['sentiment_score'], res_dict['offensive_score']
-    except Exception as e:
-        # print(e)
-        # WRITE INTO DB
-        cur.execute("""
-            INSERT INTO logs(ID, input, model, eng_input, RESPONSE, ERROR) VALUES
-                (NULL, ?, ?, ?, ?, ?)
-        """, (input, MODEL, input_eng, response, e))
-        con.commit()
-        return -1, -1
+    logger.info(f"Raw Response: {response}")
+    with get_db_connection() as con:
+        cur = con.cursor()
+        try:
+            # Decode Unicode escape sequences
+            response_decoded = response.encode('utf-8').decode('unicode_escape')
+            res_dict = json.loads(response_decoded)
+
+            # WRITE INTO DB
+            cur.execute("""
+                INSERT INTO logs(ID, input, model, eng_input, sentiment_score, offensive_score) VALUES
+                    (NULL, ?, ?, ?, ?, ?)
+            """, (input, MODEL, input_eng, res_dict['sentiment_score'], res_dict['offensive_score']))
+            con.commit()
+            return res_dict['sentiment_score'], res_dict['offensive_score']
+        except Exception as e:
+            logger.error(e)
+            return ERROR_CODE, ERROR_CODE
 
 if __name__ == "__main__":
-    con = sqlite3.connect("../logs.db", check_same_thread=False)
-    cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS logs(ID INTEGER PRIMARY KEY, input TEXT, model TEXT, eng_input TEXT, sentiment_score INT, offensive_score INT, RESPONSE TEXT, ERROR TEXT, timestamp DATE DEFAULT (datetime('now','localtime')))")
+    # Define logger
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', 
+                        datefmt='%d-%b-%y %H:%M:%S',
+                        filename='../chatgpt_pipeline.log',
+                        level=logging.INFO)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     
     demo = gr.Interface(fn=sentiment_analyzer,
                         inputs=[gr.Textbox(label="Social Media Comment", lines=1.8), gr.Checkbox(label="Local LLM")], 
