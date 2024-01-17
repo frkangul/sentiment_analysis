@@ -12,7 +12,7 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-600M", src_lang="tur_Latn")
 model = AutoModelForSeq2SeqLM.from_pretrained("facebook/nllb-200-distilled-600M")
 
-OLLAMA_MODEL = "mistral"
+LOCAL_MODEL = "mistral"
 OPENAI_MODEL = "gpt-4-1106-preview"
 
 def nllb_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu"):
@@ -56,7 +56,7 @@ def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim hav
     eng = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
     return eng
 
-def get_completion_local(prompt:str, model:str=OLLAMA_MODEL, url:str="http://localhost:11434/api/generate")->json:
+def get_completion_local(prompt:str, model:str=LOCAL_MODEL, url:str="http://localhost:11434/api/generate")->json:
     """
     Send a single prompt to local ollama API and return the response.
     See https://github.com/jmorganca/ollama.
