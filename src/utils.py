@@ -7,15 +7,14 @@ from openai import OpenAI
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 load_dotenv()
+LOCAL_MODEL = os.environ.get("LOCAL_MODEL")
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-600M", src_lang="tur_Latn")
 model = AutoModelForSeq2SeqLM.from_pretrained("facebook/nllb-200-distilled-600M")
 
-LOCAL_MODEL = "mistral"
-OPENAI_MODEL = "gpt-4-1106-preview"
-
-def nllb_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu"):
+def nllb_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu") -> str:
     """Translate from turkish to english using facebook:nllb-200-distilled-600M on hface. 
     For default article, 
     - it takes 17.3s
@@ -33,7 +32,7 @@ def nllb_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim hava
     eng = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)[0]
     return eng
 
-def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu"):
+def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim havam bulutlu") -> str:
     """Translate from turkish to english using facebook:mbart-large-50-many-to-many-mmt on hface. 
     For default article, 
     - it takes 24.1s
@@ -56,7 +55,7 @@ def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim hav
     eng = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
     return eng
 
-def get_completion_local(prompt:str, model:str=LOCAL_MODEL, url:str="http://localhost:11434/api/generate")->json:
+def get_local_completion(prompt:str, model:str=LOCAL_MODEL, url:str="http://localhost:11434/api/generate") -> str:
     """
     Send a single prompt to local ollama API and return the response.
     See https://github.com/jmorganca/ollama.
@@ -89,7 +88,7 @@ def get_completion_local(prompt:str, model:str=LOCAL_MODEL, url:str="http://loca
     response_content = "".join(parts).strip()
     return response_content
 
-def get_completion_openai(prompt:str, model:str=OPENAI_MODEL, temperature:int=0)->json:
+def get_openai_completion(prompt:str, model:str=OPENAI_MODEL, temperature:int=0) -> str:
     """
     Send a single prompt to the OpenAI API and return the response.
 
@@ -99,21 +98,20 @@ def get_completion_openai(prompt:str, model:str=OPENAI_MODEL, temperature:int=0)
         temperature (int, optional): degree of randomness of the model's output. It changes the variety of model's response. Defaults to 0.
 
     Returns:
-        json: response from the OpenAI API
+        response.choices[0].message.content (str): response from the OpenAI API
     """
 
     response = client.chat.completions.create(
       model=model,
       response_format={ "type": "json_object" },
       messages=[
-        # {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": prompt},
       ],
       temperature=temperature,
     )
     return response.choices[0].message.content
 
-gr_description = """
+gr_descr_html = """
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
