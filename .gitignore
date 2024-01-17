@@ -4,3 +4,4 @@ flagged/
 .DS_Store
 prompt.txt
 dev.ipynb
+src/__pycache__
