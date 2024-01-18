@@ -105,9 +105,8 @@ def sentiment_analyzer(input:str, is_local:bool)->int:
     with get_db_connection() as con:
         cur = con.cursor()
         try:
-            # Decode Unicode escape sequences
-            response_decoded = response.encode('utf-8').decode('unicode_escape')
-            res_dict = json.loads(response_decoded)
+            # Remove backslashes from response and turn from str to dict
+            res_dict = json.loads(response.replace('\\', ''))
 
             # WRITE INTO DB
             cur.execute("""
