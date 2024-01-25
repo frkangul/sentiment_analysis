@@ -34,8 +34,6 @@ def initialize_db():
                     eng_input TEXT,
                     sentiment_score INT,
                     offensive_score INT,
-                    RESPONSE TEXT,
-                    ERROR TEXT,
                     timestamp DATE DEFAULT (datetime('now','localtime'))
                 )
             """)
