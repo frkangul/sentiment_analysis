@@ -8,6 +8,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 load_dotenv()
 LOCAL_MODEL = os.environ.get("LOCAL_MODEL")
+URL = os.environ.get("URL")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -55,7 +56,7 @@ def mbart_translate_tr_to_eng(article:str = "Bugün hava güneşli ama benim hav
     eng = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
     return eng
 
-def get_local_completion(prompt:str, model:str=LOCAL_MODEL, url:str="http://localhost:11434/api/generate") -> str:
+def get_local_completion(prompt:str, model:str=LOCAL_MODEL, url:str=f"{URL}/api/generate") -> str:
     """
     Send a single prompt to local ollama API and return the response.
     See https://github.com/jmorganca/ollama.
