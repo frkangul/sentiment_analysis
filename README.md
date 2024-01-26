@@ -29,11 +29,12 @@ This will launch a Gradio interface in your web browser where you can input a so
 
 ## Configuration
 
-After installing OLLAMA on your local server, you can configure the OLLAMA model, OpenAI model and API key using environment variables. Create a `.env` file in the root directory of the project with the following variables:
+After installing OLLAMA on your local server, you can configure the OLLAMA model, OpenAI model, API key, URL for OLLAMA servers using environment variables. Create a `.env` file in the root directory of the project with the following variables:
 ```bash
 LOCAL_MODEL="mistral"
 OPENAI_MODEL="gpt-3.5-turbo"
 OPENAI_API_KEY=your_openai_api_key
+URL="http://localhost:11434"
 ```
 
 Replace your_openai_api_key with your actual OpenAI API key, gpt-3.5-turbo with the OpenAI model you want to use, and mistral with the OLLAMA model you want to use.
